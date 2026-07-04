@@ -15,10 +15,11 @@ proc reg*(ctx: Context) {.async.}=
     var
         name = data["name"].getStr()
         pass = data["pass"].getStr()
+        hashedpassword = hashPassword(pass)
         email = data["email"].getStr()
         age = data["age"].getInt()
         create_time = now()
-        user = User(name: name, pass: pass, age: age, create_time: create_time, email: email)
+        user = User(name: name, pass: hashedpassword, age: age, create_time: create_time, email: email)
     
     try:
         db.insert(user)
@@ -27,7 +28,7 @@ proc reg*(ctx: Context) {.async.}=
         return
     let expireTime = getTime().toUnix() + 2592000
 
-    db.select(user, "name = ? AND pass = ? AND email = ?", name, pass, email)
+    db.select(user, "name = ? AND pass = ? AND email = ?", name, hashedpassword, email)
 
     let pay = %* {"name": name, "email": email, "age": age, "id": user.id, "exp": expireTime}
 
@@ -44,7 +45,7 @@ proc loginEmail*(ctx: Context) {.async.}=
             u = User()
         db.select(u, "email = ?", email)
 
-        if u.pass == pass:
+        if verifyPassword(pass, u.pass):
             var
                 email = u.email
                 age = u.age
