@@ -34,6 +34,7 @@ discard rate(methods.POST, 10, 60, "/api/view", view)
 
 discard rate(methods.POST, 10, 60, "/api/get_post", getList)
 
+discard rate(methods.POST, 6, 60, "/api/count_posts", counter)
 
 Route.groupPath("/api", guard):
     

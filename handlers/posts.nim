@@ -143,3 +143,11 @@ proc getList*(ctx: Context){.async.}=
 
 
     else: ctx.status(400).json(%*{"ss": "no"})
+
+
+
+proc counter*(ctx: Context) {.async.}=
+
+    let count_Post = db.count(Posts, "*", false, "1=1")
+
+    ctx.json(%*{"ss": "ok", "count": count_Post})
