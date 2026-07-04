@@ -23,6 +23,9 @@ proc createPost*(ctx: Context) {.async.}=
     ctx.status(201).json(%*{"ss": "ok"})
 
 
+proc postJson(post: Posts): JsonNode=
+    return %*{"content": post.content, "title": post.title, "like": post.likes, "view": post.views, "create_time": $post.create_time, "owner_user_id": post.userlink.id, "owner_user_name": post.userlink.name}
+
 proc view*(ctx: Context) {.async.}=
     var
         data = ctx.validate(%*{"id": "required|integer"})
@@ -46,24 +49,23 @@ proc view*(ctx: Context) {.async.}=
         except:
             ctx.status(404).json(%*{"msg": "notfound, user"})
             return
-        var count = db.count(View, "*", false, "userlink = ? AND postlink = ?", user, post)
-        if count == 0:
-            
-            var view = View(userlink: user, postlink: post)
+        var view = View(userlink: user, postlink: post)
+
+        try:
             db.insert(view)
-
+            db.exec(sql"UPDATE ""Posts"" SET views = views + 1 WHERE id = ?", post.id)
             post.views += 1
-            db.update(post)
-
-            ctx.json(%*{"ss": "ok", "msg": "اولین بار", "content": post.content, "title": post.title, "like": post.likes, "view": post.views, "create_time": $post.create_time, "owner_user_id": post.userlink.id, "owner_user_name": post.userlink.name})
-        elif count == 1:
-            ctx.json(%*{"ss": "ok", "msg": "شما قبلا دیده اید!", "content": post.content, "title": post.title, "like": post.likes, "view": post.views, "create_time": $post.create_time, "owner_user_id": post.userlink.id, "owner_user_name": post.userlink.name})
-    else:
+            ctx.json(%*{"ss": "ok", "msg": "شما قبلا این پست را ندیده اید!", "data": postJson(post)})
+        except:
+            ctx.json(%*{"ss": "ok", "msg": "شما قبلا این پست را دیده اید!", "data": postJson(post)})
+    else: 
         var post = Posts(userlink: User())
-
+        
         try:
             db.select(post, "Posts.id = ?", id)
         except:
             ctx.status(404).json(%*{"msg": "notfound, post"})
-            return        
-        ctx.json(%*{"ss": "ok", "msg": "شما وارد خساب خود نشده اید!", "content": post.content, "title": post.title, "like": post.likes, "view": post.views, "create_time": $post.create_time, "owner_user_id": post.userlink.id, "owner_user_name": post.userlink.name})
+            return
+        
+        
+        ctx.json(%*{"ss": "ok", "msg": "شما وارد حساب کاربری خود نشده اید!", "data": postJson(post)})
