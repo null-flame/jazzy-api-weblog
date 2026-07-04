@@ -100,6 +100,46 @@ proc deletePost*(ctx: Context){.async.}=
     else: ctx.status(403).json(%*{"ss": "no", "msg": "شما صاحب اکانت نیستید!"})
 
 
+proc jsonLister(post: Posts): JsonNode=
+    return %* {
+        "title": post.title,
+        "id": post.id,
+        "like": post.likes,
+        "view": post.views
+    }
+
+
+proc getList*(ctx: Context){.async.}=
+    var
+        data = ctx.validate(%*{"max": "required|integer", "min": "required|integer"})
+    
+    let
+        max = data["max"].getInt()
+        min = data["min"].getInt()
+    
+    
+    if max >= min:
+
+        if max - min > 10:
+            var post_list: seq[Posts]
+
+            try:
+                db.select(post_list, "id BETWEEN ? AND ? ORDER BY id DESC", min, max)
+            except:
+                ctx.status(404).json(%*{"ss": "no", "msg": "bad req"})
+                return
+            var json_list = %*[]
+
+            for i in post_list:
+                
+                json_list.add(jsonLister(i))
+            
+            ctx.json(%*{"ss": "ok", "data": json_list})
 
 
 
+        
+        else: ctx.status(400).json(%*{"ss": "no"})
+
+
+    else: ctx.status(400).json(%*{"ss": "no"})
