@@ -151,3 +151,48 @@ proc counter*(ctx: Context) {.async.}=
     let count_Post = db.count(Posts, "*", false, "1=1")
 
     ctx.json(%*{"ss": "ok", "count": count_Post})
+
+
+
+proc counterUser*(ctx: Context) {.async.}=
+
+    var data = ctx.validate(%*{"user_id": "required|integer"})
+
+    let count_Post = db.count(Posts, "*", false, "userlink.id = ?", data["user_id"].getInt())
+
+    ctx.json(%*{"ss": "ok", "count": count_Post})
+
+proc getListUser*(ctx: Context){.async.}=
+    var
+        data = ctx.validate(%*{"max": "required|integer", "min": "required|integer", "user_id": "required|integer"})
+    
+    let
+        max = data["max"].getInt()
+        min = data["min"].getInt()
+    
+    
+    if max >= min:
+
+        if max - min <= 10:
+            var post_list: seq[Posts]
+
+            try:
+                db.select(post_list, "id BETWEEN ? AND ? AND userlink.id = ? ORDER BY id DESC", min, max, data["user_id"].getInt())
+            except:
+                ctx.status(404).json(%*{"ss": "no", "msg": "Bad request."})
+                return
+            var json_list = %*[]
+
+            for i in post_list:
+                
+                json_list.add(jsonLister(i))
+            
+            ctx.json(%*{"ss": "ok", "data": json_list})
+
+
+
+        
+        else: ctx.status(400).json(%*{"ss": "no"})
+
+
+    else: ctx.status(400).json(%*{"ss": "no"})
