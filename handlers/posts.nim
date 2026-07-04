@@ -120,7 +120,7 @@ proc getList*(ctx: Context){.async.}=
     
     if max >= min:
 
-        if max - min > 10:
+        if max - min <= 10:
             var post_list: seq[Posts]
 
             try:
