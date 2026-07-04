@@ -41,13 +41,13 @@ proc view*(ctx: Context) {.async.}=
         try:
             db.select(post, "Posts.id = ?", id)
         except:
-            ctx.status(404).json(%*{"msg": "notfound, post"})
+            ctx.status(404).json(%*{"msg": "Post not found."})
             return
 
         try:
             db.select(user, "id = ?", userid)
         except:
-            ctx.status(404).json(%*{"msg": "notfound, user"})
+            ctx.status(404).json(%*{"msg": "User not found."})
             return
         var view = View(userlink: user, postlink: post)
 
@@ -55,20 +55,20 @@ proc view*(ctx: Context) {.async.}=
             db.insert(view)
             db.exec(sql"UPDATE ""Posts"" SET views = views + 1 WHERE id = ?", post.id)
             post.views += 1
-            ctx.json(%*{"ss": "ok", "msg": "شما قبلا این پست را ندیده اید!", "data": postJson(post)})
+            ctx.json(%*{"ss": "ok", "msg": "You have not viewed this post before.", "data": postJson(post)})
         except:
-            ctx.json(%*{"ss": "ok", "msg": "شما قبلا این پست را دیده اید!", "data": postJson(post)})
+            ctx.json(%*{"ss": "ok", "msg": "You have already viewed this post.", "data": postJson(post)})
     else: 
         var post = Posts(userlink: User())
         
         try:
             db.select(post, "Posts.id = ?", id)
         except:
-            ctx.status(404).json(%*{"msg": "notfound, post"})
+            ctx.status(404).json(%*{"msg": "Post not found."})
             return
         
         
-        ctx.json(%*{"ss": "ok", "msg": "شما وارد حساب کاربری خود نشده اید!", "data": postJson(post)})
+        ctx.json(%*{"ss": "ok", "msg": "You are not logged in.", "data": postJson(post)})
 
 
 
@@ -83,7 +83,7 @@ proc deletePost*(ctx: Context){.async.}=
     try:
         db.select(post, "Posts.id = ?", id)
     except:
-        ctx.status(404).json(%*{"msg": "notfound, post"})
+        ctx.status(404).json(%*{"msg": "Post not found."})
         return
     
 
@@ -95,9 +95,9 @@ proc deletePost*(ctx: Context){.async.}=
 
         db.exec(sql"DELETE FROM ""Posts"" WHERE id = ? AND userlink_id = ?", id, user_id)
 
-        ctx.json(%*{"ss": "ok", "msg": "پست شما پاک شد!"})
+        ctx.json(%*{"ss": "ok", "msg": "Your post has been deleted successfully."})
 
-    else: ctx.status(403).json(%*{"ss": "no", "msg": "شما صاحب اکانت نیستید!"})
+    else: ctx.status(403).json(%*{"ss": "no", "msg": "You are not the owner of this account."})
 
 
 proc jsonLister(post: Posts): JsonNode=
@@ -126,7 +126,7 @@ proc getList*(ctx: Context){.async.}=
             try:
                 db.select(post_list, "id BETWEEN ? AND ? ORDER BY id DESC", min, max)
             except:
-                ctx.status(404).json(%*{"ss": "no", "msg": "bad req"})
+                ctx.status(404).json(%*{"ss": "no", "msg": "Bad request."})
                 return
             var json_list = %*[]
 

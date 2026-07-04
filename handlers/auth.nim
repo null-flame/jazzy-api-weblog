@@ -23,7 +23,7 @@ proc reg*(ctx: Context) {.async.}=
     try:
         db.insert(user)
     except:
-        ctx.json(%*{"ss": "400", "msg": "نام یا ایمیل قبلا استفاده شده است"})
+        ctx.json(%*{"ss": "400", "msg": "This name or email is already in use."})
         return
     let expireTime = getTime().toUnix() + 2592000
 
@@ -55,6 +55,6 @@ proc loginEmail*(ctx: Context) {.async.}=
                 token = ctx.login(pay, true)
             ctx.json(%*{"ss": 200, "token": token})
         else:
-            ctx.json(%*{"ss": "400", "msg": "پسورد یا ایمیل اشتباه است!"})
+            ctx.json(%*{"ss": "400", "msg": "The email or password is incorrect."})
     except NotFoundError:
-        ctx.json(%*{"ss": "400", "msg": "پسورد یا ایمیل اشتباه است!"})
+        ctx.json(%*{"ss": "400", "msg": "The email or password is incorrect."})

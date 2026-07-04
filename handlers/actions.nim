@@ -18,12 +18,12 @@ proc like*(ctx: Context) {.async.}=
     try:
         db.select(post, "Posts.id = ?", id)
     except:
-        ctx.status(404).json(%*{"msg": "notfound, post"})
+        ctx.status(404).json(%*{"msg": "Post not found."})
         return
     try:
         db.select(user, "id = ?", userid)
     except:
-        ctx.status(404).json(%*{"msg": "notfound, user"})
+        ctx.status(404).json(%*{"msg": "User not found."})
         return
     var like = Like(userlink: user, postlink: post)
 
@@ -37,4 +37,4 @@ proc like*(ctx: Context) {.async.}=
         ctx.json(%*{"ss": "ok", "like": post.likes})
 
     except:
-        ctx.status(400).json(%*{"msg": "شما قبلا لایک کرده اید!"})
+        ctx.status(400).json(%*{"msg": "You have already liked this post."})
