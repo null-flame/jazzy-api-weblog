@@ -69,3 +69,37 @@ proc view*(ctx: Context) {.async.}=
         
         
         ctx.json(%*{"ss": "ok", "msg": "شما وارد حساب کاربری خود نشده اید!", "data": postJson(post)})
+
+
+
+proc deletePost*(ctx: Context){.async.}=
+    var
+        data = ctx.validate(%*{"id": "required|integer"})
+        id = data["id"].getInt()
+        user_id = ctx.user().get()["id"].getInt()
+        post = Posts(userlink: User())
+        user = User()
+    
+    try:
+        db.select(post, "Posts.id = ?", id)
+    except:
+        ctx.status(404).json(%*{"msg": "notfound, post"})
+        return
+    
+
+    if user_id == post.userlink.id:
+
+        db.exec(sql"DELETE FROM ""Like"" WHERE postlink_id = ?", id)
+
+        db.exec(sql"DELETE FROM ""View"" WHERE postlink_id = ?", id)
+
+        db.exec(sql"DELETE FROM ""Posts"" WHERE id = ? AND userlink_id = ?", id, user_id)
+
+        ctx.json(%*{"ss": "ok", "msg": "پست شما پاک شد!"})
+
+    else: ctx.status(403).json(%*{"ss": "no", "msg": "شما صاحب اکانت نیستید!"})
+
+
+
+
+
