@@ -12,7 +12,7 @@ Route.groupPath("/api", guard):
     Route.post("/create_post", posts.createPost)
     Route.post("/like", actions.like)
     
-    Route.delete("/api/delete", deletePost)
+    Route.delete("/delete", deletePost)
 
 
 Jazzy.serve(8080)
