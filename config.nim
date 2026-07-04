@@ -10,8 +10,9 @@ proc runData*()=
 
     
 
-
     db.createTables(User())
     db.createTables(Posts(userlink: User()))
     db.createTables(Like(userlink: User(), postlink: Posts(userlink: User())))
     db.createTables(View(userlink: User(), postlink: Posts(userlink: User())))
+    db.exec(sql"CREATE UNIQUE INDEX IF NOT EXISTS idx_user_post_like ON ""Like"" (userlink, postlink)")
+    db.exec(sql"CREATE UNIQUE INDEX IF NOT EXISTS idx_user_post_view ON ""View"" (userlink, postlink)")

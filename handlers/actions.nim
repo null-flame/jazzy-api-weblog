@@ -25,15 +25,16 @@ proc like*(ctx: Context) {.async.}=
     except:
         ctx.status(404).json(%*{"msg": "notfound, user"})
         return
-    let count = db.count(Like, "*", false, "postlink = ? AND userlink = ?", post, user)
+    var like = Like(userlink: user, postlink: post)
 
-    if count == 0:
-        var liked = Like(userlink: user, postlink: post)
-        db.insert(liked)
+    try:
+        db.insert(like)
+
+        db.exec(sql"UPDATE ""Posts"" SET likes = likes + 1 WHERE id = ?", post.id)
 
         post.likes += 1
-        db.update(post)
 
         ctx.json(%*{"ss": "ok", "like": post.likes})
-    elif count == 1:
+
+    except:
         ctx.status(400).json(%*{"msg": "شما قبلا لایک کرده اید!"})
